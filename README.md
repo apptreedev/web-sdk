@@ -58,57 +58,137 @@ AppTree 배너 광고를 사용하기 위해서는
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>web sdk example</title>
-</head>
-<body style="margin: 0; padding: 0;">
+  <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="//web-sdk.apptree.co.kr/apptree.sdk.min.js"></script>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="//cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+</head>
+<style>
+  .row {
+    height: 50vh;
+    /* 세로 높이를 화면의 1/3로 설정 */
+    width: 100%;
+    /* 가로 폭을 화면 전체로 설정 */
+    touch-action: none;
+  }
+</style>
+
+<body>
   <script>
-    const ads = new Apptree.Ads({
-      appId: "com.ebcard.bustago",
-      unitId: "lc258",
-      adid: "1bbe89be-1c50-4667-b120-e5516d2c4ef1",
-      userId: "1",
-      clientIp: "192.168.0.1"
-    });
-    let adsData = {};
-    ads.load((res) => {
-      adsData = res;
-      console.log(adsData);
+    function createBannerItem(ad, impressFun, clickFun) {
+      var aElement = document.createElement("a");
+      var imgElement = document.createElement("img");
 
-      // 광고가 보여지게되면 impress를 호출해야 한다. 
-      var banner1Img = document.getElementById("banner1Img");
-      banner1Img.setAttribute("src", adsData.ad.imageUrl);
-      banner1Img.style.maxWidth = '100%';
-      banner1Img.setAttribute("width", adsData.ad.imageWidth);
-      banner1Img.setAttribute("height", 'auto');
-      banner1Img.addEventListener("load", ads.impress(adsData));
+      aElement.href = ad.link;
+      aElement.addEventListener("click", clickFun);
 
-      // click 이벤트 시에는 광고로 넘어가기 전에 ads.click(adsData) 호출
-      var banner1Link = document.getElementById("banner1Link");
-      banner1Link.setAttribute("href", adsData.ad.link);      
-      banner1Link.addEventListener("click", (event) => {
-        event.preventDefault();
-        ads.click(adsData);
-        window.open(adsData.ad.link);
+      imgElement.src = ad.imageUrl;
+      imgElement.style.maxWidth = '100%';
+      imgElement.style.width = ad.imageWidth;
+      imgElement.style.height = 'auto';
+      imgElement.addEventListener("load", impressFun);
+
+      aElement.appendChild(imgElement);
+      return aElement;
+    }
+
+    function loadBanner() {
+      const ads = new Apptree.Ads({
+        appId: "com.ebcard.bustago",
+        unitId: "lc258",
+        adid: "1bbe89be-1c50-4667-b120-e5516d2c4ef1",
+        userId: "1",
+        clientIp: "192.168.0.1"
       });
-    }, () => {
-      // 광고를 가져온데 실패를 하게 되면 호출이 된다. 
-    });
+      let adsData = {};
+      ads.load((res) => {
+        adsData = res;
+        console.log(adsData);
 
+        try {
+          const banner1 = createBannerItem(res.ad, () => ads.impress(adsData.ad), (event) => {
+            event.preventDefault();
+            ads.click(adsData.ad);
+            window.open(adsData.ad.link);
+          });
+          const banner1Div = document.querySelector('#banner1Div');
+          banner1Div.appendChild(banner1);
+        } catch (error) {
+          console.log(error);
+        }
+      }, () => {
+        // 광고를 가져온데 실패를 하게 되면 호출이 된다. 
+      });
+    }
+
+    function loadRollingBanner() {
+      const rollingAds = new Apptree.Ads({
+        appId: "com.ebcard.bustago",
+        unitId: "lc45",
+        adid: "1bbe89be-1c50-4667-b120-e5516d2c4ef1",
+        userId: "1",
+        clientIp: "192.168.0.1"
+      });
+
+      let rollingAdsData = {};
+      rollingAds.load((res) => {
+        rollingAdsData = res;
+        console.log(res);
+        const rollingBanner = document.querySelector('.swiper-wrapper');
+        for (let index = 0; index < res.ads.length; index++) {
+          const ad = res.ads[index];
+          var liElement = document.createElement("div");
+          liElement.setAttribute('class', 'swiper-slide');
+          const bannerItem = createBannerItem(ad, () => {
+            setTimeout(() => {
+              rollingAds.impress(ad);
+            }, index * 100);
+          }, (event) => {
+            event.preventDefault();
+            rollingAds.click(ad);
+            window.open(ad.link);
+          });
+          liElement.appendChild(bannerItem);
+          rollingBanner.appendChild(liElement);
+        }
+
+        var swiper = new Swiper('.swiper-container', {
+          nested: true,
+          loop: true, // 루프 활성화
+          autoplay: {
+            deplay: 3000,
+            // disableOnInteraction: false,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      }, () => { });
+    }
+
+    $(document).ready(function () {
+      loadBanner();
+      loadRollingBanner();
+    });
   </script>
   <!-- 배너 광고 구현 -->
-  <div id="banner1Div">
-    <a id="banner1Link" target="_blank">
-      <img id="banner1Img">
-    </a>
+  <div id="banner1Div" class="row"></div>
+  <!-- 롤링배너 광고 구현 -->
+  <div class="row">
+    <div class="swiper-container">
+      <div class="swiper-wrapper"></div>
+    </div>
   </div>
+
 </body>
+
 </html>
 ```
 모바일 웹페이지를 WebView 를 통해 표시하는 Hybrid 앱에서는 디바이스 광고 식별자,  
 즉 GAID (Google Advertiser Indentifier) 혹은 IDFA (Apple Identifier For Advertising) 를 AppTree 로 전달해야 합니다. 흐름은 다음과 같습니다.  
 
 a) Hybrid 앱에서 에서 먼저 GAID 혹은 IDFA 를 직접 추출합니다.  
-b) Hybrid 앱에서는 아래 예제의 Javascript 코드가 WebView 내에 구현되어 있다면 saveAdvertiserId() 메소드의 "ADID 정보" 부분에 실제 추출한 디바이스 광고 식별자를 전달합니다.  
 
 * 디바이스 광고 식별자 추출 방법 : [Android](https://developers.google.com/android/reference/com/google/android/gms/ads/identifier/AdvertisingIdClient) / [iOS](https://developer.apple.com/kr/app-store/user-privacy-and-data-use)
 * WebView 내의 Javascript 와 네이티브 코드 간 데이터 전달 방법 : [Android](https://developer.android.com/guide/webapps/webview?hl=ko#BindingJavaScript) / [iOS](https://developer.apple.com/documentation/webkit/wkusercontentcontroller?language=objc)
