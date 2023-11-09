@@ -94,10 +94,10 @@ AppTree 배너 광고를 사용하기 위해서는
 
     function loadBanner() {
       const ads = new Apptree.Ads({
-        appId: "com.ebcard.bustago",
-        unitId: "lc258",
-        adid: "1bbe89be-1c50-4667-b120-e5516d2c4ef1",
-        userId: "1",
+        appId: "your android packname",
+        unitId: "your unit id",  // 앱트리에서 발급받은 unit id
+        adid: "00000000-0000-0000-0000-000000000000",
+        userId: "user01",
         clientIp: "192.168.0.1"
       });
       let adsData = {};
@@ -123,10 +123,10 @@ AppTree 배너 광고를 사용하기 위해서는
 
     function loadRollingBanner() {
       const rollingAds = new Apptree.Ads({
-        appId: "com.ebcard.bustago",
-        unitId: "lc45",
-        adid: "1bbe89be-1c50-4667-b120-e5516d2c4ef1",
-        userId: "1",
+        appId: "your android packname",
+        unitId: "your unit id",  // 앱트리에서 발급받은 unit id
+        adid: "00000000-0000-0000-0000-000000000000",
+        userId: "user01",
         clientIp: "192.168.0.1"
       });
 
